@@ -135,7 +135,7 @@ def guardar_subida_archivo(uploaded_file, destino: Path) -> str:
     return str(destino)
 
 
-def generar_qr_buffer(url: str) -> BytesIO:
+def generar_qr_buffer(url: str) -> bytes:
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
@@ -148,9 +148,7 @@ def generar_qr_buffer(url: str) -> BytesIO:
     img = qr.make_image(fill_color="black", back_color="white")
     buffer = BytesIO()
     img.save(buffer, format="PNG")
-    buffer.seek(0)
-    return buffer
-
+    return buffer.getvalue()
 
 def mapear_tipo_servicio(tipo_servicio: str) -> str:
     tipo = str(tipo_servicio).strip().lower()
@@ -265,12 +263,13 @@ def render_qr_sidebar() -> None:
     st.sidebar.subheader("QR de la app")
 
     qr_buffer = generar_qr_buffer(APP_URL)
-    st.sidebar.image(qr_buffer, caption="Escanea para abrir la app", use_container_width=True)
+    qr_bytes = qr_buffer.getvalue()
 
-    qr_buffer.seek(0)
+    st.sidebar.image(qr_bytes, caption="Escanea para abrir la app", use_container_width=True)
+
     st.sidebar.download_button(
         label="📥 Descargar QR",
-        data=qr_buffer.getvalue(),
+        data=qr_bytes,
         file_name="qr_hospitium_app.png",
         mime="image/png",
     )
