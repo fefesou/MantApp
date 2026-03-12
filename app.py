@@ -32,7 +32,7 @@ PDF_DIR.mkdir(exist_ok=True)
 try:
     APP_URL = st.secrets["APP_URL"]
 except Exception:
-    APP_URL = "http://192.168.1.13:8501"
+    APP_URL = "https://mantapp.streamlit.app/"
 
 
 INV_COLUMNS = [
