@@ -267,7 +267,7 @@ def render_qr_sidebar() -> None:
     st.sidebar.image(
         qr_bytes,
         caption="Escanea para abrir la app",
-        use_container_width=True,
+        width='stretch',
     )
 
     st.sidebar.download_button(
@@ -289,7 +289,7 @@ df_inv, df_mant = cargar_datos()
 # SIDEBAR
 # =========================================================
 if LOGO_FILE.exists():
-    st.sidebar.image(str(LOGO_FILE), use_container_width=True)
+    st.sidebar.image(str(LOGO_FILE), width='stretch')
 else:
     st.sidebar.markdown("## 🏥 Hospitium")
 
@@ -343,7 +343,7 @@ if opcion == "📊 Dashboard y Base de Datos":
                 conteo_areas = df_inv.groupby("Área").size().reset_index(name="Cantidad")
                 if not conteo_areas.empty:
                     fig_pie = px.pie(conteo_areas, names="Área", values="Cantidad", hole=0.3)
-                    st.plotly_chart(fig_pie, use_container_width=True)
+                    st.plotly_chart(fig_pie, width='stretch')
                 else:
                     st.info("No hay datos suficientes para la gráfica por área.")
 
@@ -364,7 +364,7 @@ if opcion == "📊 Dashboard y Base de Datos":
                     labels={"Fecha_str": "Día del Mantenimiento"},
                 )
                 fig_bar.update_xaxes(type="category")
-                st.plotly_chart(fig_bar, use_container_width=True)
+                st.plotly_chart(fig_bar,width='stretch')
             else:
                 st.info("Aún no se han registrado mantenimientos.")
 
@@ -386,7 +386,7 @@ if opcion == "📊 Dashboard y Base de Datos":
                 imagen_actual = str(datos_equipo.get("Imagen", "")).strip()
                 if imagen_actual and Path(imagen_actual).exists():
                     try:
-                        st.image(Image.open(str(imagen_actual)), use_container_width=True)
+                        st.image(Image.open(str(imagen_actual)),width='stretch')
                     except Exception:
                         st.error("No fue posible mostrar la imagen guardada.")
                 else:
@@ -417,7 +417,7 @@ if opcion == "📊 Dashboard y Base de Datos":
         tab_inv, tab_mant = st.tabs(["📦 Inventario de Equipos", "🛠️ Historial de Mantenimientos"])
 
         with tab_inv:
-            df_editado_inv = st.data_editor(df_inv, use_container_width=True, num_rows="dynamic", key="editor_inv")
+            df_editado_inv = st.data_editor(df_inv, width='stretch', num_rows="dynamic", key="editor_inv")
             c_btn1, c_btn2 = st.columns(2)
 
             with c_btn1:
@@ -436,7 +436,7 @@ if opcion == "📊 Dashboard y Base de Datos":
                         )
 
         with tab_mant:
-            df_editado_mant = st.data_editor(df_mant, use_container_width=True, num_rows="dynamic", key="editor_mant")
+            df_editado_mant = st.data_editor(df_mant, width='stretch', num_rows="dynamic", key="editor_mant")
             c_btn3, c_btn4 = st.columns(2)
 
             with c_btn3:
