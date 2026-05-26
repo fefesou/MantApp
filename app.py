@@ -77,8 +77,8 @@ def inyectar_estilos() -> None:
         }
 
         .block-container {
-            padding-top: 1.15rem;
-            padding-bottom: 2.75rem;
+            padding-top: 3.25rem;
+            padding-bottom: 3rem;
             padding-left: clamp(1rem, 2.2vw, 2.2rem);
             padding-right: clamp(1rem, 2.2vw, 2.2rem);
         }
@@ -88,7 +88,7 @@ def inyectar_estilos() -> None:
         }
 
         div[data-testid="stSidebar"] .block-container {
-            padding-top: 1.1rem;
+            padding-top: 2.1rem;
         }
 
         div[data-testid="stSidebar"] p,
@@ -104,8 +104,13 @@ def inyectar_estilos() -> None:
             border: 1px solid var(--mantapp-border) !important;
             background: linear-gradient(135deg, rgba(34,197,94,0.16), rgba(37,99,235,0.10)) !important;
             box-shadow: 0 8px 22px rgba(0,0,0,0.14) !important;
-            min-height: 2.65rem;
+            min-height: 3rem !important;
+            height: auto !important;
+            padding: 0.55rem 0.95rem !important;
             font-weight: 650 !important;
+            line-height: 1.25 !important;
+            white-space: normal !important;
+            overflow: visible !important;
             transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
         }
 
@@ -215,7 +220,18 @@ def inyectar_estilos() -> None:
         }
 
         .mantapp-home-row {
-            margin-bottom: 0.35rem;
+            margin: 0.65rem 0 1rem 0;
+            overflow: visible;
+        }
+
+        .mantapp-top-actions {
+            margin: 0.75rem 0 1rem 0;
+            padding: 0.2rem 0;
+            overflow: visible;
+        }
+
+        .mantapp-footer-space {
+            height: 1rem;
         }
 
         .mantapp-url-box {
@@ -233,6 +249,7 @@ def inyectar_estilos() -> None:
 
         @media (max-width: 800px) {
             .block-container {
+                padding-top: 3.6rem;
                 padding-left: 0.85rem;
                 padding-right: 0.85rem;
             }
@@ -251,9 +268,11 @@ def inyectar_estilos() -> None:
     )
 
 
-def navegar_inicio() -> None:
-    # Regresa a la vista principal dentro de la misma pestaña, sin abrir ventanas nuevas.
-    st.session_state["nav_main"] = "📊 Dashboard y Base de Datos"
+NAV_DEFAULT = "📊 Dashboard y Base de Datos"
+NAV_TARGET_KEY = "_nav_target_pending"
+
+
+def limpiar_query_params() -> None:
     try:
         st.query_params.clear()
     except Exception:
@@ -261,6 +280,13 @@ def navegar_inicio() -> None:
             st.experimental_set_query_params()
         except Exception:
             pass
+
+
+def navegar_inicio() -> None:
+    # Regresa a la vista principal dentro de la misma pestaña, sin abrir ventanas nuevas.
+    # No se modifica directamente el widget de navegación después de creado; se agenda el cambio para el siguiente rerun.
+    st.session_state[NAV_TARGET_KEY] = NAV_DEFAULT
+    limpiar_query_params()
     st.rerun()
 
 
@@ -1226,15 +1252,18 @@ def render_ficha_equipo(
 ) -> None:
     control_id = str(control_id).strip().upper()
 
-    render_credit()
-    st.markdown('<div class="mantapp-home-row">', unsafe_allow_html=True)
-    render_home_button("🏠 Inicio", use_container_width=False, key=f"home_ficha_{control_id}")
-    st.markdown('</div>', unsafe_allow_html=True)
     render_page_header(
         "Ficha técnica del equipo",
         f"Control: <b>{control_id}</b> · Acceso directo desde QR · ficha, historial, reportes, bitácora y baja en una sola vista.",
         "📋",
     )
+    st.markdown('<div class="mantapp-top-actions">', unsafe_allow_html=True)
+    col_home, col_credito = st.columns([1, 3])
+    with col_home:
+        render_home_button("🏠 Inicio", use_container_width=True, key=f"home_ficha_{control_id}")
+    with col_credito:
+        render_credit()
+    st.markdown('</div>', unsafe_allow_html=True)
 
     if df_inv.empty or "Control" not in df_inv.columns:
         st.error("No se encontró inventario cargado.")
@@ -1629,7 +1658,9 @@ def render_qrs_por_equipo(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_report
         """,
         unsafe_allow_html=True,
     )
+    st.markdown('<div class="mantapp-top-actions">', unsafe_allow_html=True)
     render_home_button("🏠 Ir al inicio", key="home_qrs_panel")
+    st.markdown('</div>', unsafe_allow_html=True)
 
     st.info("Las imágenes actuales de los equipos se leen desde qr_equipos/. Los QR nuevos se generan en qrs_generados/ para no sobrescribir esas imágenes.")
 
@@ -1772,6 +1803,11 @@ opciones_nav = [
     "📋 Reportes",
     "⚠️ Solicitudes de Baja",
 ]
+if NAV_TARGET_KEY in st.session_state:
+    destino_pendiente = st.session_state.pop(NAV_TARGET_KEY)
+    if destino_pendiente in opciones_nav:
+        st.session_state["nav_main"] = destino_pendiente
+
 if "nav_main" not in st.session_state or st.session_state["nav_main"] not in opciones_nav:
     st.session_state["nav_main"] = opciones_nav[0]
 
