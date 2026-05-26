@@ -60,6 +60,78 @@ except Exception:
 
 
 # =========================================================
+# ESTILO VISUAL Y NAVEGACIÓN
+# =========================================================
+def inyectar_estilos() -> None:
+    """Aplica una capa visual ligera sin romper la compatibilidad de Streamlit."""
+    st.markdown(
+        """
+        <style>
+        .block-container {
+            padding-top: 2.0rem;
+            padding-bottom: 2.5rem;
+        }
+        div[data-testid="stMetric"] {
+            background: rgba(255,255,255,0.035);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            padding: 14px 16px;
+        }
+        div[data-testid="stForm"] {
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.10);
+            padding: 1rem;
+        }
+        .mantapp-hero {
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 22px;
+            padding: 18px 20px;
+            margin: 6px 0 18px 0;
+            background: linear-gradient(135deg, rgba(54, 163, 120, 0.16), rgba(78, 112, 255, 0.10));
+            box-shadow: 0 12px 36px rgba(0,0,0,0.18);
+        }
+        .mantapp-small {
+            color: rgba(255,255,255,0.68);
+            font-size: 0.92rem;
+            margin-top: -0.35rem;
+        }
+        .mantapp-pill {
+            display: inline-block;
+            padding: 6px 10px;
+            margin: 4px 6px 4px 0;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.10);
+            font-size: 0.86rem;
+        }
+        .mantapp-action-card {
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 18px;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.035);
+            margin-bottom: 10px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_home_button(label: str = "🏠 Volver al inicio", use_container_width: bool = False) -> None:
+    """Botón seguro para regresar a la página principal, incluso desde una ficha abierta por QR."""
+    try:
+        st.link_button(label, APP_URL, use_container_width=use_container_width)
+    except Exception:
+        st.markdown(
+            f'<a href="{APP_URL}" target="_self" style="display:inline-block;padding:0.55rem 0.9rem;border-radius:0.6rem;text-decoration:none;border:1px solid #36a378;">{label}</a>',
+            unsafe_allow_html=True,
+        )
+
+
+inyectar_estilos()
+
+
+# =========================================================
 # COLUMNAS DE BASE DE DATOS
 # =========================================================
 INV_COLUMNS = [
@@ -446,12 +518,12 @@ def sincronizar_equipos_base(df_inv: pd.DataFrame) -> pd.DataFrame:
 # =========================================================
 # QR
 # =========================================================
-def generar_qr_buffer(url: str) -> bytes:
+def generar_qr_buffer(url: str, box_size: int = 14, border: int = 4) -> bytes:
     qr = qrcode.QRCode(
-        version=1,
+        version=None,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=10,
-        border=4,
+        box_size=box_size,
+        border=border,
     )
     qr.add_data(url)
     qr.make(fit=True)
@@ -462,45 +534,101 @@ def generar_qr_buffer(url: str) -> bytes:
     return buffer.getvalue()
 
 
+def _texto_centrado(draw: ImageDraw.ImageDraw, xy_y: int, ancho: int, texto: str, font, fill: str = "#111827") -> int:
+    texto = unicodedata.normalize("NFKD", str(texto)).encode("ascii", "ignore").decode("ascii")
+    bbox = draw.textbbox((0, 0), texto, font=font)
+    x = max((ancho - (bbox[2] - bbox[0])) // 2, 10)
+    draw.text((x, xy_y), texto, fill=fill, font=font)
+    return xy_y + (bbox[3] - bbox[1]) + 8
+
+
 def generar_qr_personalizado_buffer(control_id: str) -> bytes:
-    control_id = str(control_id).strip()
+    """Genera un QR tipo tarjeta, más presentable para impresión, sin sacrificar legibilidad."""
+    control_id = str(control_id).strip().upper()
     info = EQUIPOS_QR.get(control_id, {})
     nombre = info.get("nombre", control_id)
     url = construir_url_equipo(control_id)
 
-    qr_img = Image.open(BytesIO(generar_qr_buffer(url))).convert("RGB")
-    ancho = qr_img.width
-    alto_extra = 135
-    canvas = Image.new("RGB", (ancho, qr_img.height + alto_extra), "white")
-    canvas.paste(qr_img, (0, 0))
+    qr_img = Image.open(BytesIO(generar_qr_buffer(url, box_size=16, border=4))).convert("RGB")
+    qr_size = 690
+    qr_img = qr_img.resize((qr_size, qr_size), Image.Resampling.NEAREST)
 
-    draw = ImageDraw.Draw(canvas)
+    ancho, alto = 900, 1180
+    fondo = Image.new("RGB", (ancho, alto), "#f8fafc")
+    draw = ImageDraw.Draw(fondo)
+
+    # Tarjeta base y cabecera.
+    draw.rounded_rectangle((34, 34, ancho - 34, alto - 34), radius=34, fill="#ffffff", outline="#dbe5ef", width=3)
+    draw.rounded_rectangle((34, 34, ancho - 34, 228), radius=34, fill="#0f766e")
+    draw.rectangle((34, 140, ancho - 34, 228), fill="#0f766e")
+
     try:
-        font_titulo = ImageFont.truetype("arial.ttf", 28)
-        font_texto = ImageFont.truetype("arial.ttf", 18)
-        font_url = ImageFont.truetype("arial.ttf", 14)
+        font_brand = ImageFont.truetype("arialbd.ttf", 30)
+        font_control = ImageFont.truetype("arialbd.ttf", 64)
+        font_title = ImageFont.truetype("arialbd.ttf", 34)
+        font_text = ImageFont.truetype("arial.ttf", 26)
+        font_small = ImageFont.truetype("arial.ttf", 22)
+        font_tiny = ImageFont.truetype("arial.ttf", 18)
     except Exception:
-        font_titulo = ImageFont.load_default()
-        font_texto = ImageFont.load_default()
-        font_url = ImageFont.load_default()
+        font_brand = ImageFont.load_default()
+        font_control = ImageFont.load_default()
+        font_title = ImageFont.load_default()
+        font_text = ImageFont.load_default()
+        font_small = ImageFont.load_default()
+        font_tiny = ImageFont.load_default()
 
-    y = qr_img.height + 10
-    lineas = [control_id, nombre, "MantApp Hospitium"]
-    for i, linea in enumerate(lineas):
-        fuente = font_titulo if i == 0 else font_texto
-        linea_segura = unicodedata.normalize("NFKD", linea).encode("ascii", "ignore").decode("ascii")
-        bbox = draw.textbbox((0, 0), linea_segura, font=fuente)
-        x = max((ancho - (bbox[2] - bbox[0])) // 2, 5)
-        draw.text((x, y), linea_segura, fill="black", font=fuente)
-        y += 34 if i == 0 else 25
+    draw.text((72, 58), "MantApp Hospitium", fill="white", font=font_brand)
+    draw.text((72, 104), "Ficha tecnica digital", fill="#ccfbf1", font=font_text)
+    draw.text((72, 150), control_id, fill="white", font=font_control)
 
+    # Insignia pequeña para distinguir que es QR de equipo.
+    draw.rounded_rectangle((610, 78, 810, 150), radius=22, fill="#ecfeff", outline="#99f6e4", width=2)
+    draw.text((638, 98), "QR EQUIPO", fill="#115e59", font=font_small)
+
+    # Nombre del equipo.
+    y = 258
+    nombre_seguro = unicodedata.normalize("NFKD", nombre).encode("ascii", "ignore").decode("ascii")
+    palabras = nombre_seguro.split()
+    lineas, linea = [], ""
+    for palabra in palabras:
+        prueba = (linea + " " + palabra).strip()
+        bbox = draw.textbbox((0, 0), prueba, font=font_title)
+        if bbox[2] - bbox[0] <= 760:
+            linea = prueba
+        else:
+            if linea:
+                lineas.append(linea)
+            linea = palabra
+    if linea:
+        lineas.append(linea)
+    for linea in lineas[:2]:
+        y = _texto_centrado(draw, y, ancho, linea, font_title, "#111827")
+
+    # Marco del QR.
+    qr_x = (ancho - qr_size) // 2
+    qr_y = 382
+    draw.rounded_rectangle((qr_x - 24, qr_y - 24, qr_x + qr_size + 24, qr_y + qr_size + 24), radius=30, fill="#f1f5f9", outline="#cbd5e1", width=3)
+    fondo.paste(qr_img, (qr_x, qr_y))
+
+    # Miniatura del equipo fuera del área de datos del QR para mantener escaneo robusto.
+    ruta_img = buscar_imagen_equipo(control_id)
+    if ruta_img and ruta_img.exists():
+        try:
+            thumb = Image.open(ruta_img).convert("RGB")
+            thumb.thumbnail((150, 110))
+            tx, ty = ancho - 215, 244
+            draw.rounded_rectangle((tx - 8, ty - 8, tx + 166, ty + 126), radius=18, fill="#ffffff", outline="#dbe5ef", width=2)
+            fondo.paste(thumb, (tx + (150 - thumb.width) // 2, ty + (110 - thumb.height) // 2))
+        except Exception:
+            pass
+
+    y = 1110
+    draw.text((72, y), "Escanea para abrir ficha, historial, reporte, bitacora y baja", fill="#334155", font=font_small)
     url_corta = url.replace("https://", "")
-    bbox = draw.textbbox((0, 0), url_corta, font=font_url)
-    x = max((ancho - (bbox[2] - bbox[0])) // 2, 5)
-    draw.text((x, y), url_corta, fill="black", font=font_url)
+    draw.text((72, y + 34), url_corta[:92], fill="#64748b", font=font_tiny)
 
     buffer = BytesIO()
-    canvas.save(buffer, format="PNG")
+    fondo.save(buffer, format="PNG", optimize=True)
     return buffer.getvalue()
 
 
@@ -773,7 +901,13 @@ def render_bitacora(
     modo_compacto: bool = False,
 ) -> None:
     titulo = "🛠️ Bitácora de Servicio - Hospitium" if not modo_compacto else "Generar bitácora para este equipo"
-    st.title(titulo) if not modo_compacto else st.subheader(titulo)
+    # IMPORTANTE: no envolver esta función con st.write(), st.code() ni st.help().
+    # Las funciones de Streamlit devuelven objetos DeltaGenerator; si se imprimen,
+    # aparecen textos raros como "Creator of Delta protobuf messages".
+    if modo_compacto:
+        st.subheader(titulo)
+    else:
+        st.title(titulo)
 
     if df_inv.empty:
         st.error("Primero debes registrar equipos en el inventario.")
@@ -912,8 +1046,19 @@ def render_ficha_equipo(
         "<div style='color: #4CAF50; font-size: 12px; font-weight: bold;'>👩‍💻 Desarrollado por: Fernanda Soriano</div>",
         unsafe_allow_html=True,
     )
-    st.title("Ficha técnica del equipo")
-    st.caption(f"Control: {control_id}")
+    top_home, top_title = st.columns([1, 5])
+    with top_home:
+        render_home_button("🏠 Inicio", use_container_width=True)
+    with top_title:
+        st.markdown(
+            f"""
+            <div class="mantapp-hero">
+                <h1 style="margin:0;">📋 Ficha técnica del equipo</h1>
+                <div class="mantapp-small">Control: <b>{control_id}</b> · Acceso directo desde QR</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     if df_inv.empty or "Control" not in df_inv.columns:
         st.error("No se encontró inventario cargado.")
@@ -924,6 +1069,7 @@ def render_ficha_equipo(
     if equipo.empty:
         st.error(f"No se encontró ningún equipo con control {control_id}.")
         st.info("Verifica que el equipo exista en la hoja INVENTARIO del Excel. También puedes usar el botón de sincronización del módulo de QR.")
+        render_home_button("🏠 Regresar a la página principal")
         if control_id in EQUIPOS_QR:
             st.write("Equipo configurado para QR:")
             st.json(EQUIPOS_QR[control_id])
@@ -971,6 +1117,18 @@ def render_ficha_equipo(
         st.write(f"**Batería de respaldo:** {datos.get('Batería de respaldo', 'No especificada')}")
         st.write(f"**Dependencia eléctrica:** {datos.get('Dependencia eléctrica', 'No especificada')}")
         st.code(construir_url_equipo(control_id), language="text")
+        st.markdown(
+            """
+            <div class="mantapp-action-card">
+                <b>Acciones disponibles desde esta ficha:</b><br>
+                <span class="mantapp-pill">📚 Historial</span>
+                <span class="mantapp-pill">🛠️ Reporte</span>
+                <span class="mantapp-pill">📄 Bitácora</span>
+                <span class="mantapp-pill">⚠️ Baja</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     st.markdown("---")
 
@@ -1040,7 +1198,16 @@ def render_ficha_equipo(
         render_form_reporte_equipo(control_id, df_inv, df_mant, df_reportes, df_bajas)
 
     with tab_bitacora:
-        render_bitacora(df_inv, df_mant, df_reportes, df_bajas, control_preseleccionado=control_id, modo_compacto=True)
+        # Llamada directa. No usar st.write(render_bitacora(...)) porque Streamlit
+        # mostraría el objeto interno DeltaGenerator en pantalla.
+        render_bitacora(
+            df_inv,
+            df_mant,
+            df_reportes,
+            df_bajas,
+            control_preseleccionado=control_id,
+            modo_compacto=True,
+        )
 
     with tab_baja:
         render_form_baja_equipo(control_id, df_inv, df_mant, df_reportes, df_bajas)
@@ -1268,8 +1435,16 @@ def render_nuevo_equipo(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_reportes
 
 
 def render_qrs_por_equipo(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_reportes: pd.DataFrame, df_bajas: pd.DataFrame) -> None:
-    st.title("🏷️ QRs por Equipo")
-    st.write("Genera QRs individuales. Cada QR abre directamente la ficha técnica del equipo por su control real.")
+    st.markdown(
+        """
+        <div class="mantapp-hero">
+            <h1 style="margin:0;">🏷️ QRs por Equipo</h1>
+            <div class="mantapp-small">Genera tarjetas QR más limpias y escaneables para abrir la ficha individual de cada equipo.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    render_home_button("🏠 Ir al inicio")
 
     st.info("Las imágenes actuales de los equipos se leen desde qr_equipos/. Los QR nuevos se generan en qrs_generados/ para no sobrescribir esas imágenes.")
 
@@ -1312,7 +1487,8 @@ def render_qrs_por_equipo(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_report
                     mime="image/png",
                     key=f"qr_download_{control}",
                 )
-                st.link_button("Abrir ficha", url)
+                st.link_button("🔗 Abrir ficha del equipo", url)
+                st.caption("El QR nuevo se guarda como tarjeta visual en qrs_generados/. La imagen original del equipo permanece intacta en qr_equipos/.")
 
 
 def render_reportes(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_reportes: pd.DataFrame, df_bajas: pd.DataFrame) -> None:
@@ -1378,6 +1554,7 @@ df_inv, df_mant, df_reportes, df_bajas = cargar_datos()
 # Acceso directo desde QR: https://mantapp.streamlit.app/?equipo=QX-003
 equipo_qr = obtener_parametro("equipo")
 if equipo_qr:
+    # Llamada directa. No usar st.write(), st.code() ni st.help() alrededor.
     render_ficha_equipo(equipo_qr, df_inv, df_mant, df_reportes, df_bajas)
     st.stop()
 
@@ -1391,6 +1568,7 @@ else:
     st.sidebar.markdown("## 🏥 Hospitium")
 
 st.sidebar.title("Hospitium App")
+render_home_button("🏠 Inicio", use_container_width=True)
 opcion = st.sidebar.radio(
     "Navegación",
     [
