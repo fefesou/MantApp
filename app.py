@@ -63,69 +63,246 @@ except Exception:
 # ESTILO VISUAL Y NAVEGACIÓN
 # =========================================================
 def inyectar_estilos() -> None:
-    """Aplica una capa visual ligera sin romper la compatibilidad de Streamlit."""
+    # Aplica estética moderna, corrige espacios apretados y mejora responsividad.
     st.markdown(
-        """
+        '''
         <style>
+        :root {
+            --mantapp-green: #22c55e;
+            --mantapp-teal: #0f766e;
+            --mantapp-blue: #2563eb;
+            --mantapp-border: rgba(148, 163, 184, 0.26);
+            --mantapp-card: rgba(15, 23, 42, 0.54);
+            --mantapp-soft: rgba(255,255,255,0.055);
+        }
+
         .block-container {
-            padding-top: 2.0rem;
-            padding-bottom: 2.5rem;
+            padding-top: 1.15rem;
+            padding-bottom: 2.75rem;
+            padding-left: clamp(1rem, 2.2vw, 2.2rem);
+            padding-right: clamp(1rem, 2.2vw, 2.2rem);
         }
+
+        h1, h2, h3 {
+            letter-spacing: -0.02em;
+        }
+
+        div[data-testid="stSidebar"] .block-container {
+            padding-top: 1.1rem;
+        }
+
+        div[data-testid="stSidebar"] p,
+        div[data-testid="stSidebar"] span,
+        div[data-testid="stSidebar"] label {
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+        }
+
+        div.stButton > button,
+        div[data-testid="stDownloadButton"] > button {
+            border-radius: 14px !important;
+            border: 1px solid var(--mantapp-border) !important;
+            background: linear-gradient(135deg, rgba(34,197,94,0.16), rgba(37,99,235,0.10)) !important;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.14) !important;
+            min-height: 2.65rem;
+            font-weight: 650 !important;
+            transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+        }
+
+        div.stButton > button:hover,
+        div[data-testid="stDownloadButton"] > button:hover {
+            transform: translateY(-1px);
+            border-color: rgba(34,197,94,0.55) !important;
+            background: linear-gradient(135deg, rgba(34,197,94,0.24), rgba(37,99,235,0.16)) !important;
+        }
+
         div[data-testid="stMetric"] {
-            background: rgba(255,255,255,0.035);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 18px;
-            padding: 14px 16px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.025));
+            border: 1px solid var(--mantapp-border);
+            border-radius: 20px;
+            padding: 15px 16px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.12);
         }
+
         div[data-testid="stForm"] {
-            border-radius: 18px;
-            border: 1px solid rgba(255,255,255,0.10);
-            padding: 1rem;
-        }
-        .mantapp-hero {
-            border: 1px solid rgba(255,255,255,0.12);
             border-radius: 22px;
-            padding: 18px 20px;
-            margin: 6px 0 18px 0;
-            background: linear-gradient(135deg, rgba(54, 163, 120, 0.16), rgba(78, 112, 255, 0.10));
-            box-shadow: 0 12px 36px rgba(0,0,0,0.18);
+            border: 1px solid var(--mantapp-border);
+            padding: 1.15rem;
+            background: rgba(255,255,255,0.025);
+            box-shadow: 0 14px 30px rgba(0,0,0,0.10);
         }
+
+        [data-baseweb="tab-list"] {
+            gap: 0.35rem;
+            overflow-x: auto;
+            padding-bottom: 0.25rem;
+        }
+
+        [data-baseweb="tab"] {
+            border-radius: 999px !important;
+            padding-left: 0.85rem !important;
+            padding-right: 0.85rem !important;
+            white-space: nowrap;
+        }
+
+        .mantapp-page-header,
+        .mantapp-hero {
+            border: 1px solid var(--mantapp-border);
+            border-radius: 24px;
+            padding: clamp(16px, 2vw, 24px);
+            margin: 8px 0 18px 0;
+            background:
+                radial-gradient(circle at top right, rgba(34,197,94,0.22), transparent 34%),
+                linear-gradient(135deg, rgba(15,118,110,0.24), rgba(37,99,235,0.10));
+            box-shadow: 0 18px 44px rgba(0,0,0,0.18);
+        }
+
+        .mantapp-page-header h1,
+        .mantapp-hero h1 {
+            margin: 0 !important;
+            font-size: clamp(1.55rem, 3.2vw, 2.45rem);
+            line-height: 1.12;
+        }
+
         .mantapp-small {
-            color: rgba(255,255,255,0.68);
-            font-size: 0.92rem;
-            margin-top: -0.35rem;
+            color: rgba(226,232,240,0.82);
+            font-size: clamp(0.88rem, 1.8vw, 1rem);
+            margin-top: 0.45rem;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
         }
+
+        .mantapp-credit {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            max-width: 100%;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            color: #4ade80;
+            font-size: clamp(0.76rem, 1.5vw, 0.9rem);
+            font-weight: 800;
+            padding: 0.45rem 0.7rem;
+            margin: 0.2rem 0 0.9rem 0;
+            border-radius: 999px;
+            background: rgba(34,197,94,0.10);
+            border: 1px solid rgba(74,222,128,0.28);
+        }
+
         .mantapp-pill {
             display: inline-block;
-            padding: 6px 10px;
-            margin: 4px 6px 4px 0;
+            padding: 7px 11px;
+            margin: 4px 7px 4px 0;
             border-radius: 999px;
             background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.10);
-            font-size: 0.86rem;
+            border: 1px solid rgba(255,255,255,0.12);
+            font-size: 0.88rem;
+            line-height: 1.25;
         }
-        .mantapp-action-card {
-            border: 1px solid rgba(255,255,255,0.10);
-            border-radius: 18px;
-            padding: 14px 16px;
-            background: rgba(255,255,255,0.035);
-            margin-bottom: 10px;
+
+        .mantapp-action-card,
+        .mantapp-soft-card {
+            border: 1px solid var(--mantapp-border);
+            border-radius: 22px;
+            padding: 16px 18px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025));
+            margin-bottom: 12px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        }
+
+        .mantapp-soft-card h3 {
+            margin-top: 0 !important;
+        }
+
+        .mantapp-home-row {
+            margin-bottom: 0.35rem;
+        }
+
+        .mantapp-url-box {
+            font-size: 0.9rem;
+            padding: 0.7rem 0.85rem;
+            border-radius: 14px;
+            background: rgba(15,23,42,0.45);
+            border: 1px solid var(--mantapp-border);
+            overflow-wrap: anywhere;
+        }
+
+        img {
+            border-radius: 16px;
+        }
+
+        @media (max-width: 800px) {
+            .block-container {
+                padding-left: 0.85rem;
+                padding-right: 0.85rem;
+            }
+            .mantapp-page-header,
+            .mantapp-hero {
+                border-radius: 18px;
+            }
+            [data-testid="column"] {
+                width: 100% !important;
+                flex: 1 1 100% !important;
+            }
         }
         </style>
-        """,
+        ''',
         unsafe_allow_html=True,
     )
 
 
-def render_home_button(label: str = "🏠 Volver al inicio", use_container_width: bool = False) -> None:
-    """Botón seguro para regresar a la página principal, incluso desde una ficha abierta por QR."""
+def navegar_inicio() -> None:
+    # Regresa a la vista principal dentro de la misma pestaña, sin abrir ventanas nuevas.
+    st.session_state["nav_main"] = "📊 Dashboard y Base de Datos"
     try:
-        st.link_button(label, APP_URL, use_container_width=use_container_width)
+        st.query_params.clear()
     except Exception:
-        st.markdown(
-            f'<a href="{APP_URL}" target="_self" style="display:inline-block;padding:0.55rem 0.9rem;border-radius:0.6rem;text-decoration:none;border:1px solid #36a378;">{label}</a>',
-            unsafe_allow_html=True,
-        )
+        try:
+            st.experimental_set_query_params()
+        except Exception:
+            pass
+    st.rerun()
+
+
+def abrir_ficha_en_misma_pagina(control_id: str) -> None:
+    # Abre una ficha QR modificando la URL actual y rerenderizando en la misma pestaña.
+    control_id = str(control_id).strip().upper()
+    try:
+        st.query_params["equipo"] = control_id
+    except Exception:
+        try:
+            st.experimental_set_query_params(equipo=control_id)
+        except Exception:
+            pass
+    st.rerun()
+
+
+def render_home_button(label: str = "🏠 Volver al inicio", use_container_width: bool = False, key: Optional[str] = None) -> None:
+    # Botón real de navegación interna; no es link externo ni abre nueva ventana.
+    key_base = re.sub(r"[^A-Za-z0-9_]+", "_", label).strip("_") or "inicio"
+    boton_key = key or f"home_btn_{key_base}_{'full' if use_container_width else 'normal'}"
+    if st.button(label, use_container_width=use_container_width, key=boton_key):
+        navegar_inicio()
+
+
+def render_credit() -> None:
+    st.markdown(
+        '<div class="mantapp-credit">👩‍💻 Desarrollado por: Fernanda Soriano</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def render_page_header(titulo: str, subtitulo: str = "", icono: str = "🏥") -> None:
+    subtitulo_html = f'<div class="mantapp-small">{subtitulo}</div>' if subtitulo else ""
+    st.markdown(
+        f'''
+        <div class="mantapp-page-header">
+            <h1>{icono} {titulo}</h1>
+            {subtitulo_html}
+        </div>
+        ''',
+        unsafe_allow_html=True,
+    )
 
 
 inyectar_estilos()
@@ -905,9 +1082,16 @@ def render_bitacora(
     # Las funciones de Streamlit devuelven objetos DeltaGenerator; si se imprimen,
     # aparecen textos raros como "Creator of Delta protobuf messages".
     if modo_compacto:
-        st.subheader(titulo)
+        st.markdown(
+            '<div class="mantapp-soft-card"><h3 style="margin-bottom:0.25rem;">📄 Generar bitácora para este equipo</h3><div class="mantapp-small">El equipo queda preseleccionado desde la ficha QR.</div></div>',
+            unsafe_allow_html=True,
+        )
     else:
-        st.title(titulo)
+        render_page_header(
+            "Bitácora de servicio",
+            "Genera el PDF de servicio, guarda el mantenimiento en Excel y actualiza el estado del equipo.",
+            "🛠️",
+        )
 
     if df_inv.empty:
         st.error("Primero debes registrar equipos en el inventario.")
@@ -1042,23 +1226,15 @@ def render_ficha_equipo(
 ) -> None:
     control_id = str(control_id).strip().upper()
 
-    st.markdown(
-        "<div style='color: #4CAF50; font-size: 12px; font-weight: bold;'>👩‍💻 Desarrollado por: Fernanda Soriano</div>",
-        unsafe_allow_html=True,
+    render_credit()
+    st.markdown('<div class="mantapp-home-row">', unsafe_allow_html=True)
+    render_home_button("🏠 Inicio", use_container_width=False, key=f"home_ficha_{control_id}")
+    st.markdown('</div>', unsafe_allow_html=True)
+    render_page_header(
+        "Ficha técnica del equipo",
+        f"Control: <b>{control_id}</b> · Acceso directo desde QR · ficha, historial, reportes, bitácora y baja en una sola vista.",
+        "📋",
     )
-    top_home, top_title = st.columns([1, 5])
-    with top_home:
-        render_home_button("🏠 Inicio", use_container_width=True)
-    with top_title:
-        st.markdown(
-            f"""
-            <div class="mantapp-hero">
-                <h1 style="margin:0;">📋 Ficha técnica del equipo</h1>
-                <div class="mantapp-small">Control: <b>{control_id}</b> · Acceso directo desde QR</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
 
     if df_inv.empty or "Control" not in df_inv.columns:
         st.error("No se encontró inventario cargado.")
@@ -1116,7 +1292,10 @@ def render_ficha_equipo(
         st.write(f"**Garantía vigente:** {datos.get('Garantía vigente', 'No especificada')}")
         st.write(f"**Batería de respaldo:** {datos.get('Batería de respaldo', 'No especificada')}")
         st.write(f"**Dependencia eléctrica:** {datos.get('Dependencia eléctrica', 'No especificada')}")
-        st.code(construir_url_equipo(control_id), language="text")
+        st.markdown(
+            f'<div class="mantapp-url-box">🔗 {construir_url_equipo(control_id)}</div>',
+            unsafe_allow_html=True,
+        )
         st.markdown(
             """
             <div class="mantapp-action-card">
@@ -1214,11 +1393,12 @@ def render_ficha_equipo(
 
 
 def render_dashboard(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_reportes: pd.DataFrame, df_bajas: pd.DataFrame) -> None:
-    st.markdown(
-        "<div style='color: #4CAF50; font-size: 12px; font-weight: bold;'>👩‍💻 Desarrollado por: Fernanda Soriano</div>",
-        unsafe_allow_html=True,
+    render_credit()
+    render_page_header(
+        "Panel de control de equipos",
+        "Vista general del inventario, mantenimientos, reportes, bajas, fotografías y acceso a fichas QR.",
+        "📊",
     )
-    st.title("Panel de Control de Equipos")
 
     if df_inv.empty:
         st.warning("No se encontró información en el inventario.")
@@ -1317,7 +1497,8 @@ def render_dashboard(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_reportes: p
             st.write(f"**Modelo / Serie:** {datos_equipo['Modelo']} / {datos_equipo['Serie']}")
             st.write(f"**Área / Ubicación:** {datos_equipo['Área']} - {datos_equipo['Ubicación']}")
             st.write(f"**Estado Actual:** {datos_equipo['Estado del equipo']}")
-            st.link_button("Abrir ficha QR", construir_url_equipo(id_selec))
+            if st.button("📋 Abrir ficha QR", key=f"abrir_ficha_dashboard_{id_selec}"):
+                abrir_ficha_en_misma_pagina(id_selec)
 
     st.markdown("---")
     st.subheader("Base de Datos Interactiva")
@@ -1368,7 +1549,11 @@ def render_dashboard(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_reportes: p
 
 
 def render_nuevo_equipo(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_reportes: pd.DataFrame, df_bajas: pd.DataFrame) -> None:
-    st.title("Ingresar Nuevo Equipo")
+    render_page_header(
+        "Ingresar nuevo equipo",
+        "Registro directo al inventario con fotografía, ubicación, criticidad y estado operativo.",
+        "➕",
+    )
     st.write("Completa los datos para registrar un equipo nuevo directamente en tu archivo Excel.")
 
     with st.form("form_nuevo_equipo"):
@@ -1444,7 +1629,7 @@ def render_qrs_por_equipo(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_report
         """,
         unsafe_allow_html=True,
     )
-    render_home_button("🏠 Ir al inicio")
+    render_home_button("🏠 Ir al inicio", key="home_qrs_panel")
 
     st.info("Las imágenes actuales de los equipos se leen desde qr_equipos/. Los QR nuevos se generan en qrs_generados/ para no sobrescribir esas imágenes.")
 
@@ -1487,12 +1672,17 @@ def render_qrs_por_equipo(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_report
                     mime="image/png",
                     key=f"qr_download_{control}",
                 )
-                st.link_button("🔗 Abrir ficha del equipo", url)
+                if st.button("📋 Abrir ficha del equipo", key=f"abrir_ficha_qr_panel_{control}"):
+                    abrir_ficha_en_misma_pagina(control)
                 st.caption("El QR nuevo se guarda como tarjeta visual en qrs_generados/. La imagen original del equipo permanece intacta en qr_equipos/.")
 
 
 def render_reportes(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_reportes: pd.DataFrame, df_bajas: pd.DataFrame) -> None:
-    st.title("📋 Reportes de Equipos")
+    render_page_header(
+        "Reportes de equipos",
+        "Consulta, filtra y actualiza reportes levantados desde las fichas QR.",
+        "📋",
+    )
 
     if df_reportes.empty:
         st.info("Aún no hay reportes registrados.")
@@ -1513,7 +1703,11 @@ def render_reportes(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_reportes: pd
 
 
 def render_bajas(df_inv: pd.DataFrame, df_mant: pd.DataFrame, df_reportes: pd.DataFrame, df_bajas: pd.DataFrame) -> None:
-    st.title("⚠️ Solicitudes de Baja")
+    render_page_header(
+        "Solicitudes de baja",
+        "Revisión y autorización de bajas sin modificar el inventario hasta que la solicitud sea ejecutada.",
+        "⚠️",
+    )
 
     if df_bajas.empty:
         st.info("Aún no hay solicitudes de baja registradas.")
@@ -1568,17 +1762,23 @@ else:
     st.sidebar.markdown("## 🏥 Hospitium")
 
 st.sidebar.title("Hospitium App")
-render_home_button("🏠 Inicio", use_container_width=True)
+render_home_button("🏠 Inicio", use_container_width=True, key="home_sidebar")
+
+opciones_nav = [
+    "📊 Dashboard y Base de Datos",
+    "➕ Nuevo Equipo",
+    "🛠️ Generar Bitácora",
+    "🏷️ QRs por Equipo",
+    "📋 Reportes",
+    "⚠️ Solicitudes de Baja",
+]
+if "nav_main" not in st.session_state or st.session_state["nav_main"] not in opciones_nav:
+    st.session_state["nav_main"] = opciones_nav[0]
+
 opcion = st.sidebar.radio(
     "Navegación",
-    [
-        "📊 Dashboard y Base de Datos",
-        "➕ Nuevo Equipo",
-        "🛠️ Generar Bitácora",
-        "🏷️ QRs por Equipo",
-        "📋 Reportes",
-        "⚠️ Solicitudes de Baja",
-    ],
+    opciones_nav,
+    key="nav_main",
 )
 
 render_qr_sidebar()
